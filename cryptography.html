@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operation Cipher — Cryptography Field Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#05090f;
+  --surface:#0c1220;
+  --surface2:#111827;
+  --amber:#f59e0b;
+  --amber-dim:rgba(245,158,11,0.12);
+  --amber-border:rgba(245,158,11,0.25);
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,0.12);
+  --blue:#60a5fa;
+  --blue-dim:rgba(96,165,250,0.12);
+  --red:#ef4444;
+  --red-dim:rgba(239,68,68,0.12);
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --dim:#475569;
+  --border:rgba(255,255,255,0.07);
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,158,11,0.08), transparent),
+    linear-gradient(rgba(245,158,11,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,158,11,0.025) 1px,transparent 1px);
+  background-size:100% 100%,48px 48px,48px 48px;
+}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,9,15,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--amber-border);
+  padding:0 1.5rem;
+  display:flex;align-items:center;gap:0;
+  overflow-x:auto;
+}
+.nav-brand{
+  font-family:'Orbitron',monospace;
+  font-size:12px;font-weight:700;
+  color:var(--amber);
+  letter-spacing:3px;
+  white-space:nowrap;
+  padding:14px 20px 14px 0;
+  border-right:1px solid var(--border);
+  margin-right:8px;
+}
+.nav-link{
+  font-size:12px;
+  color:var(--dim);
+  text-decoration:none;
+  letter-spacing:1.5px;
+  padding:14px 16px;
+  white-space:nowrap;
+  transition:color 0.15s;
+  font-weight:500;
+}
+.nav-link:hover{color:var(--amber);}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;
+  padding:4rem 1.5rem 3rem;
+  position:relative;
+}
+.classified-label{
+  display:inline-block;
+  border:2px solid var(--red);
+  color:var(--red);
+  font-family:'Orbitron',monospace;
+  font-size:10px;letter-spacing:5px;
+  padding:5px 14px;
+  transform:rotate(-2deg);
+  margin-bottom:2rem;
+  opacity:0.7;
+}
+.hero h1{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(2.2rem,6vw,3.5rem);
+  font-weight:900;
+  color:var(--amber);
+  letter-spacing:4px;
+  line-height:1.1;
+  margin-bottom:0.75rem;
+  text-shadow:0 0 60px rgba(245,158,11,0.25);
+}
+.hero-sub{
+  color:var(--dim);
+  font-size:13px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  margin-bottom:2rem;
+}
+.mission-pills{
+  display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+}
+.mission-pill{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  font-size:12px;
+  color:var(--muted);
+  padding:6px 16px;
+  letter-spacing:1px;
+}
+.mission-pill span{color:var(--amber);font-weight:600;}
+
+/* ── SECTION ── */
+.section{
+  max-width:780px;
+  margin:0 auto;
+  padding:0 1.5rem 4rem;
+}
+.mission-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:2rem;
+  margin-bottom:2.5rem;
+  position:relative;
+  overflow:hidden;
+}
+.mission-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+}
+.card-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:0.5rem;
+}
+.mission-tag{
+  font-family:'Orbitron',monospace;
+  font-size:10px;letter-spacing:2px;
+  color:var(--amber);
+  background:var(--amber-dim);
+  border:1px solid var(--amber-border);
+  border-radius:4px;
+  padding:4px 10px;
+  white-space:nowrap;
+}
+.mission-card h2{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(13px,2.5vw,17px);
+  font-weight:700;letter-spacing:1px;
+  color:var(--text);
+}
+.mission-card .desc{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.75;
+  margin-bottom:1.75rem;
+  padding-top:0.75rem;
+}
+.mission-card .desc strong{color:var(--text);}
+
+/* ── FORM ── */
+.field{margin-bottom:1.25rem;}
+.field label, .field-label{
+  display:block;
+  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;
+}
+input[type=text],textarea{
+  width:100%;
+  background:rgba(0,0,0,0.5);
+  border:1px solid rgba(245,158,11,0.2);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Share Tech Mono',monospace;
+  font-size:15px;
+  padding:11px 14px;
+  outline:none;
+  transition:border-color 0.2s;
+}
+input[type=text]:focus,textarea:focus{border-color:rgba(245,158,11,0.55);}
+input[type=text]::placeholder,textarea::placeholder{color:#263248;font-style:italic;}
+textarea{height:80px;resize:none;}
+
+input[type=range]{
+  -webkit-appearance:none;
+  width:100%;height:4px;
+  background:rgba(245,158,11,0.18);
+  border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:20px;
+  background:var(--amber);
+  border-radius:50%;cursor:pointer;
+  box-shadow:0 0 8px rgba(245,158,11,0.4);
+}
+input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;
+  background:var(--amber);border:none;
+  border-radius:50%;cursor:pointer;
+}
+
+/* ── OUTPUT BOXES ── */
+.output-box{
+  background:rgba(0,0,0,0.45);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:14px;
+  min-height:46px;
+  word-break:break-all;
+  line-height:1.6;
+  color:var(--dim);
+  transition:color 0.2s, border-color 0.2s;
+}
+.output-box.amber{color:var(--amber);border-color:var(--amber-border);}
+.output-box.green{color:var(--green);border-color:rgba(34,197,94,0.3);}
+.output-box.blue{color:var(--blue);border-color:rgba(96,165,250,0.3);font-size:11.5px;letter-spacing:0.3px;}
+.output-box.plain{color:var(--text);border-color:rgba(255,255,255,0.12);}
+
+/* ── SHIFT CONTROL ── */
+.shift-row{
+  display:flex;align-items:center;gap:16px;
+  margin:0.75rem 0 1.25rem;
+}
+.shift-number{
+  font-family:'Orbitron',monospace;
+  font-size:28px;font-weight:700;
+  color:var(--amber);
+  min-width:48px;text-align:center;
+  line-height:1;
+}
+
+/* ── ALPHA MAP ── */
+.alpha-map{
+  display:flex;flex-wrap:nowrap;
+  overflow-x:auto;
+  gap:1px;
+  padding:10px 0;
+  margin-bottom:1.25rem;
+  scrollbar-width:thin;
+  scrollbar-color:var(--amber-border) transparent;
+}
+.alpha-cell{
+  display:flex;flex-direction:column;
+  align-items:center;
+  min-width:22px;flex-shrink:0;
+}
+.alpha-orig{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);padding:2px 3px;}
+.alpha-enc{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--amber);font-weight:bold;padding:2px 3px;}
+
+/* ── GRID ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:580px){
+  .two-col{grid-template-columns:1fr;}
+  .three-col{grid-template-columns:1fr;}
+}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:1.75rem 0;}
+
+/* ── CHALLENGE BOX ── */
+.challenge-box{
+  background:rgba(245,158,11,0.04);
+  border:1px solid var(--amber-border);
+  border-radius:10px;
+  padding:1.25rem 1.25rem 1.5rem;
+}
+.challenge-header{
+  font-family:'Orbitron',monospace;
+  font-size:11px;letter-spacing:2.5px;
+  color:var(--amber);margin-bottom:8px;
+}
+.challenge-box .hint{
+  font-size:13px;color:var(--muted);
+  margin-bottom:14px;line-height:1.6;
+}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:13px;font-weight:500;
+  padding:7px 16px;border-radius:20px;
+}
+.badge-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.badge-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.badge-info{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.25);}
+.badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);}
+
+/* ── FACT CARDS ── */
+.fact-card{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+}
+.fact-icon{font-size:22px;margin-bottom:8px;}
+.fact-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.fact-desc{font-size:12px;color:var(--dim);line-height:1.55;}
+
+/* ── COPY BUTTON ── */
+.copy-btn{
+  background:var(--amber-dim);
+  border:1px solid var(--amber-border);
+  border-radius:6px;
+  color:var(--amber);
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;letter-spacing:1px;
+  padding:7px 16px;cursor:pointer;
+  transition:background 0.15s;
+  margin-top:10px;
+}
+.copy-btn:hover{background:rgba(245,158,11,0.22);}
+
+/* ── BLINK CURSOR ── */
+@keyframes blink{50%{opacity:0;}}
+.blink-cursor::after{content:'█';animation:blink 1s step-end infinite;color:var(--blue);font-size:11px;}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;
+  padding:2.5rem 1.5rem;
+  color:var(--dim);
+  font-size:11px;
+  letter-spacing:2px;
+  border-top:1px solid var(--border);
+}
+
+/* ── HELPER ── */
+.mt-sm{margin-top:0.75rem;}
+.mt-md{margin-top:1.25rem;}
+.mb-sm{margin-bottom:0.75rem;}
+
+/* ── STEP BADGE ── */
+.step-complete{
+  display:none;
+  position:absolute;top:1.5rem;right:1.5rem;
+  font-family:'Orbitron',monospace;
+  font-size:10px;letter-spacing:2px;
+  background:var(--green-dim);
+  color:var(--green);
+  border:1px solid rgba(34,197,94,0.3);
+  border-radius:4px;
+  padding:4px 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">OPERATION CIPHER</div>
+  <a class="nav-link" href="#mission1">MISSION 01</a>
+  <a class="nav-link" href="#mission2">MISSION 02</a>
+  <a class="nav-link" href="#mission3">MISSION 03</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="classified-label">CLASSIFIED</div>
+  <h1>OPERATION<br>CIPHER</h1>
+  <p class="hero-sub">Cryptography Field Training · Grades 9–12</p>
+  <div class="mission-pills">
+    <div class="mission-pill"><span>01</span> Caesar Cipher</div>
+    <div class="mission-pill"><span>02</span> Crack the Code</div>
+    <div class="mission-pill"><span>03</span> Password Vault</div>
+  </div>
+</div>
+
+<!-- MISSIONS -->
+<div class="section">
+
+  <!-- ─── MISSION 01 ─── -->
+  <div class="mission-card" id="mission1">
+    <div class="card-header">
+      <span class="mission-tag">MISSION 01</span>
+      <h2>ENCODE A SECRET MESSAGE</h2>
+    </div>
+    <p class="desc">
+      The <strong>Caesar cipher</strong> is one of the oldest encryption methods in history — Julius Caesar used it to send secret military orders. The idea is simple: shift every letter forward in the alphabet by a fixed number. Only someone who knows the <strong>shift key</strong> can decode it.
+    </p>
+
+    <div class="field">
+      <label>Your secret message</label>
+      <textarea id="m1-plain" placeholder="Type something here, e.g. Meet at noon..."></textarea>
+    </div>
+
+    <div class="field-label">Shift amount (your key)</div>
+    <div class="shift-row">
+      <input type="range" id="m1-shift" min="1" max="25" value="13" step="1" style="flex:1">
+      <div class="shift-number" id="m1-shift-val">13</div>
+    </div>
+
+    <div class="field-label">Alphabet mapping — original (grey) → encrypted (gold)</div>
+    <div class="alpha-map" id="m1-alpha-map"></div>
+
+    <div class="two-col">
+      <div>
+        <div class="field-label">Original (plaintext)</div>
+        <div class="output-box" id="m1-out-plain">your message here...</div>
+      </div>
+      <div>
+        <div class="field-label">Encrypted (ciphertext)</div>
+        <div class="output-box amber" id="m1-out-cipher">—</div>
+      </div>
+    </div>
+
+    <button class="copy-btn" id="m1-copy-btn" onclick="copyEncrypted()">⊞ COPY ENCRYPTED MESSAGE</button>
+    <p style="font-size:12px;color:var(--dim);margin-top:8px;">
+      Share the encrypted message with a classmate — can they decode it if you tell them the shift?
+    </p>
+  </div>
+
+  <!-- ─── MISSION 02 ─── -->
+  <div class="mission-card" id="mission2">
+    <div class="card-header">
+      <span class="mission-tag">MISSION 02</span>
+      <h2>CRACK THE CODE</h2>
+    </div>
+    <p class="desc">
+      An enemy agent sent this encrypted message. We know it was encoded with a <strong>Caesar cipher</strong>, but we don't know the shift. Your mission: find the right shift to decode it. Drag the slider until the message makes sense!
+    </p>
+
+    <div class="challenge-box">
+      <div class="challenge-header">⚡ INTERCEPTED TRANSMISSION</div>
+      <div class="output-box amber" style="font-size:17px;letter-spacing:2px;margin-bottom:1.25rem;">
+        Wkh txlfn eurzq ira!
+      </div>
+
+      <div class="field-label">Try a shift to decode it</div>
+      <div class="shift-row">
+        <input type="range" id="crack-shift" min="1" max="25" value="1" step="1" style="flex:1">
+        <div class="shift-number" id="crack-shift-val">1</div>
+      </div>
+
+      <div class="field-label">Decoded attempt</div>
+      <div class="output-box green" id="crack-output" style="font-size:17px;letter-spacing:1px;">...</div>
+
+      <div id="crack-status" style="margin-top:1rem;min-height:34px;"></div>
+
+      <div style="margin-top:1rem;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:8px;">
+        <div style="font-size:11px;color:var(--dim);letter-spacing:1px;">💡 HINT</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Julius Caesar always used the same shift to send orders to his generals. What was his favorite number?</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;">
+      <strong style="color:var(--text);">Why isn't the Caesar cipher secure today?</strong><br>
+      There are only <strong style="color:var(--amber);">25 possible shifts</strong>. A computer can try all of them in less than a millisecond. Modern encryption uses keys with billions of possible values — completely different scale.
+    </p>
+  </div>
+
+  <!-- ─── MISSION 03 ─── -->
+  <div class="mission-card" id="mission3">
+    <div class="card-header">
+      <span class="mission-tag">MISSION 03</span>
+      <h2>INFILTRATE THE PASSWORD VAULT</h2>
+    </div>
+    <p class="desc">
+      Websites never store your actual password. Instead, they store its <strong>hash</strong> — a fixed-length fingerprint generated by a one-way function. When you log in, the site re-hashes what you type and compares it to the stored hash. Try it with <strong>real SHA-256 hashing</strong>, the same algorithm used by actual websites.
+    </p>
+
+    <!-- Step 1: Create a password -->
+    <div style="background:rgba(96,165,250,0.04);border:1px solid rgba(96,165,250,0.15);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--blue);margin-bottom:12px;">STEP 1 — CREATE AN ACCOUNT</div>
+      <div class="field">
+        <label>Choose a password</label>
+        <input type="text" id="pw-signup" placeholder="e.g. sunshine123">
+      </div>
+      <div class="field-label">SHA-256 hash stored in database:</div>
+      <div class="output-box blue blink-cursor" id="hash-signup" style="font-size:11.5px;letter-spacing:0.5px;">type a password above...</div>
+      <p style="font-size:12px;color:var(--dim);margin-top:8px;">
+        Try changing just one character — watch the entire hash transform completely. That's the <strong style="color:var(--muted);">avalanche effect</strong>.
+      </p>
+    </div>
+
+    <!-- Step 2: Login -->
+    <div style="background:rgba(96,165,250,0.04);border:1px solid rgba(96,165,250,0.15);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--blue);margin-bottom:12px;">STEP 2 — TRY TO LOG IN</div>
+      <div class="two-col mb-sm">
+        <div>
+          <div class="field-label">Stored hash (from signup)</div>
+          <div class="output-box blue" id="hash-stored" style="font-size:10.5px;">—</div>
+        </div>
+        <div>
+          <div class="field-label">Hash of login attempt</div>
+          <div class="output-box blue" id="hash-attempt" style="font-size:10.5px;">—</div>
+        </div>
+      </div>
+      <div class="field mt-sm">
+        <label>Login password attempt</label>
+        <input type="text" id="pw-login" placeholder="Try the same password... or a different one">
+      </div>
+      <div id="login-result" style="min-height:38px;margin-top:4px;"></div>
+    </div>
+
+    <!-- Key facts -->
+    <div class="three-col">
+      <div class="fact-card">
+        <div class="fact-icon">→</div>
+        <div class="fact-title">One-way only</div>
+        <div class="fact-desc">A hash cannot be reversed. You can't get the password back from the hash — ever.</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">=</div>
+        <div class="fact-title">Deterministic</div>
+        <div class="fact-desc">Same input always gives the exact same hash. Always consistent, never random.</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-icon">⚡</div>
+        <div class="fact-title">Avalanche effect</div>
+        <div class="fact-desc">Change one letter → completely different 256-bit hash. No patterns to exploit.</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;">
+      <strong style="color:var(--text);">What about data breaches?</strong><br>
+      If a hacker steals a database, they get hashes — not passwords. To crack them, they'd need to guess millions of passwords and compare hashes. This is why <strong style="color:var(--amber);">long, unique passwords</strong> matter — they're much harder to guess even with the hash.
+    </p>
+  </div>
+
+</div><!-- /section -->
+
+<footer>OPERATION CIPHER · CRYPTOGRAPHY FIELD TRAINING · GRADES 9–12</footer>
+
+<script>
+// ──────────────────────────────────────────────
+// CAESAR CIPHER
+// ──────────────────────────────────────────────
+function caesarChar(c, shift) {
+  if (c >= 'a' && c <= 'z') return String.fromCharCode(((c.charCodeAt(0) - 97 + shift) % 26) + 97);
+  if (c >= 'A' && c <= 'Z') return String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65);
+  return c;
+}
+function caesar(text, shift) {
+  return text.split('').map(c => caesarChar(c, shift)).join('');
+}
+
+function buildAlphaMap(shift) {
+  const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const container = document.getElementById('m1-alpha-map');
+  container.innerHTML = alpha.split('').map(c => {
+    const enc = alpha[(alpha.indexOf(c) + shift) % 26];
+    return `<div class="alpha-cell"><div class="alpha-orig">${c}</div><div class="alpha-enc">${enc}</div></div>`;
+  }).join('');
+}
+
+function updateMission1() {
+  const text = document.getElementById('m1-plain').value;
+  const shift = parseInt(document.getElementById('m1-shift').value);
+  document.getElementById('m1-shift-val').textContent = shift;
+  buildAlphaMap(shift);
+  const plainEl = document.getElementById('m1-out-plain');
+  const cipherEl = document.getElementById('m1-out-cipher');
+  if (text.trim()) {
+    plainEl.textContent = text;
+    plainEl.className = 'output-box plain';
+    cipherEl.textContent = caesar(text, shift);
+    cipherEl.className = 'output-box amber';
+  } else {
+    plainEl.textContent = 'your message here...';
+    plainEl.className = 'output-box';
+    cipherEl.textContent = '—';
+    cipherEl.className = 'output-box amber';
+  }
+}
+
+document.getElementById('m1-plain').addEventListener('input', updateMission1);
+document.getElementById('m1-shift').addEventListener('input', updateMission1);
+buildAlphaMap(13);
+
+function copyEncrypted() {
+  const text = document.getElementById('m1-out-cipher').textContent;
+  if (text === '—') return;
+  navigator.clipboard.writeText(text).catch(() => {});
+  const btn = document.getElementById('m1-copy-btn');
+  const orig = btn.textContent;
+  btn.textContent = '✓ COPIED TO CLIPBOARD';
+  setTimeout(() => btn.textContent = orig, 2000);
+}
+
+// ──────────────────────────────────────────────
+// CRACK THE CODE
+// ──────────────────────────────────────────────
+// Challenge: "Wkh txlfn eurzq ira!" = "The quick brown fox!" shifted by 3
+function updateCrack() {
+  const shift = parseInt(document.getElementById('crack-shift').value);
+  document.getElementById('crack-shift-val').textContent = shift;
+  const challenge = 'Wkh txlfn eurzq ira!';
+  const decoded = caesar(challenge, 26 - shift);
+  document.getElementById('crack-output').textContent = decoded;
+  const statusEl = document.getElementById('crack-status');
+  if (shift === 3) {
+    statusEl.innerHTML = '<span class="badge badge-success">✓ MISSION COMPLETE — The quick brown fox! — You cracked it!</span>';
+  } else {
+    statusEl.innerHTML = '<span class="badge badge-info">🔍 Keep adjusting the shift...</span>';
+  }
+}
+document.getElementById('crack-shift').addEventListener('input', updateCrack);
+updateCrack();
+
+// ──────────────────────────────────────────────
+// SHA-256 PASSWORD HASHING
+// ──────────────────────────────────────────────
+async function sha256(msg) {
+  if (!msg) return null;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+let storedHash = null;
+
+async function onSignupInput() {
+  const pw = document.getElementById('pw-signup').value;
+  const hashEl = document.getElementById('hash-signup');
+  const storedEl = document.getElementById('hash-stored');
+  if (!pw) {
+    hashEl.textContent = 'type a password above...';
+    hashEl.className = 'output-box blue blink-cursor';
+    storedEl.textContent = '—';
+    storedHash = null;
+    updateLoginResult();
+    return;
+  }
+  const h = await sha256(pw);
+  storedHash = h;
+  hashEl.textContent = h;
+  hashEl.className = 'output-box blue';
+  storedEl.textContent = h;
+  updateLoginResult();
+}
+
+async function onLoginInput() {
+  const pw = document.getElementById('pw-login').value;
+  const attemptEl = document.getElementById('hash-attempt');
+  if (!pw) {
+    attemptEl.textContent = '—';
+    updateLoginResult();
+    return;
+  }
+  const h = await sha256(pw);
+  attemptEl.textContent = h;
+  updateLoginResult(h);
+}
+
+async function updateLoginResult(attemptHashOverride) {
+  const resultEl = document.getElementById('login-result');
+  const loginPw = document.getElementById('pw-login').value;
+  if (!storedHash || !loginPw) {
+    resultEl.innerHTML = '';
+    return;
+  }
+  const ah = attemptHashOverride || await sha256(loginPw);
+  if (!ah) { resultEl.innerHTML = ''; return; }
+  if (ah === storedHash) {
+    resultEl.innerHTML = '<span class="badge badge-success">✓ ACCESS GRANTED — Hashes match. Login successful!</span>';
+  } else {
+    resultEl.innerHTML = '<span class="badge badge-danger">✗ ACCESS DENIED — Hashes don\'t match. Wrong password.</span>';
+  }
+}
+
+document.getElementById('pw-signup').addEventListener('input', onSignupInput);
+document.getElementById('pw-login').addEventListener('input', onLoginInput);
+</script>
+</body>
+</html>
